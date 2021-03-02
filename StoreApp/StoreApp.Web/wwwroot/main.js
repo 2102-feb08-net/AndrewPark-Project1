@@ -31,7 +31,20 @@ function addLocationsToDropdown() {
 function handleLocationClick(event) {
     let elem = event.target.closest('button');
     if (elem.nodeName == "BUTTON") {
-        console.log("here");
+        toggleMainView("inventoryTable");
+        let table = document.getElementById("inventoryTableBody");
+        while (table.childNodes.length > 0) {
+            table.removeChild(table.lastChild);
+        }
+        let locationInventory = inventory[elem.textContent];
+        for (let i = 0; i < locationInventory.length; i++) {
+            let prod = locationInventory[i];
+            let row = table.insertRow();
+            row.innerHTML = `<td>${prod.productId}</td>
+                            <td>${prod.name}</td>
+                            <td>${prod.price}</td>
+                            <td>${prod.amount}</td>`;
+        }
     }
 }
 
