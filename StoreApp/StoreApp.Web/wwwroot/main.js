@@ -1,4 +1,5 @@
 let currentCustomer;
+let currentLocation;
 let customers;
 let orders;
 let inventory;
@@ -30,14 +31,46 @@ function addLocationsToDropdown() {
     }
 }
 
+function removeCart() {
+    cart = {};
+    handleCartPageClick();
+}
+
+function handleLocationOrdersClick(location) {
+    locationOrders = filterOrderByLocation(orders, location);
+    toggleMainView("inventory");
+    let table = document.getElementById("locationOrdersTableBody");
+
+    while (table.children.length) {
+        table.removeChild(table.lastChild);
+    }
+
+    for (let i = 0; i < locationOrders.length; i++) {
+        for (let j = 0; j < locationOrders[i].products.length; j++) {
+            let order = locationOrders[i];
+            let prod = locationOrders[i].products[j];
+            const row = table.insertRow();
+            row.innerHTML = `<td>${order.orderId}</td>
+                        <td>${order.customerId}</td>
+                        <td>${order.location}</td>
+                        <td>${prod.name}</td>
+                        <td>${prod.amount}</td>`;
+        }
+    }
+}
+
 function handleLocationClick(event) {
     let elem = event.target.closest('button');
     if (elem.nodeName == "BUTTON") {
+        currentLocation = elem.textContent;
+        handleLocationOrdersClick(currentLocation);
         toggleMainView("inventory");
         let table = document.getElementById("inventoryTableBody");
+
         while (table.childNodes.length > 0) {
             table.removeChild(table.lastChild);
         }
+
         let locationInventory = inventory[elem.textContent];
         for (let i = 0; i < locationInventory.length; i++) {
             let prod = locationInventory[i];
@@ -45,7 +78,7 @@ function handleLocationClick(event) {
             row.innerHTML = `<td>${prod.productId}</td>
                             <td>${prod.name}</td>
                             <td>${prod.price}</td>
-                            <td><input type="number" min=0 placeholder="${prod.amount}" size=5></td>`;
+                            <td><input type="number" onkeydown="return false" min=0 max=${prod.amount} placeholder="${prod.amount}" size=5></td>`;
             row.setAttribute("productId", prod.productId);
             row.setAttribute("productName", prod.name);
             row.setAttribute("price", prod.price);
@@ -57,6 +90,10 @@ function filterOrderByCustomer(orders, customer)
 {
     let j = customer.getAttribute("customerId");
     return orders.filter((order) => { return order.customerId == customer.getAttribute("customerId");});
+}
+
+function filterOrderByLocation(orders, location) {
+    return orders.filter((order) => { return order.location == location; });
 }
 
 async function getInventory() {
@@ -113,6 +150,15 @@ async function getOrders()
     return listOfOrders;
 }
 
+function handleLocationOrderClick(event) {
+    let inventoryTable = document.getElementById("inventoryTable");
+    let addCartButton = document.getElementById("addToCartButton");
+    let locationOrdersTable = document.getElementById("locationOrdersTable");
+    inventoryTable.hidden = !inventoryTable.hidden;
+    addCartButton.hidden = !addCartButton.hidden;
+    locationOrdersTable.hidden = !locationOrdersTable.hidden;
+}
+
 function handleCartPageClick() {
     let table = document.getElementById("cartTableBody");
 
@@ -135,16 +181,19 @@ function handleAddToCart(event) {
         let prod = tableBody.children[i];
         let prodInput = prod.children[3].firstChild;
         let cartObject = {
+            location: currentLocation,
             productId : prod.getAttribute("productId"),
             productName : prod.getAttribute("productName"),
-            price : prod.getAttribute("price"),
-            amount : parseInt(prodInput.value),
+            price: prod.getAttribute("price"),
+            amount: isNaN(parseInt(prodInput.value)) ? 0 : parseInt(prodInput.value),
         };
-        if (cartObject.productId in cart) {
-            cart[cartObject.productId].amount += cartObject.amount;
-        }
-        else {
-            cart[cartObject.productId] = cartObject;
+        if (cartObject.amount > 0) {
+            if (cartObject.productId in cart) {
+                cart[cartObject.productId].amount += cartObject.amount;
+            }
+            else {
+                cart[cartObject.productId] = cartObject;
+            }
         }
     }
 }

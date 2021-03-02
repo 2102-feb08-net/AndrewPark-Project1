@@ -73,17 +73,14 @@
               </tr>
           </thead>
           <tbody id="orderTableBody">
-              <tr orderId="1" location="Mark" productName="Otto" productBought=10000>
-                  <th scope="row">1</th>
-                  <td>1</td>
-                  <td>CA1</td>
-                  <td>PS4</td>
-                  <td>2</td>
-              </tr>
           </tbody>
       </table>
 
       <div class="table-responsive" id="inventory" hidden>
+          <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="inventoryOrderSwitch" onclick="handleLocationOrderClick(event)">
+              <label class="form-check-label" for="inventoryOrderSwitch">Location Orders</label>
+          </div>
           <table class="table table-hover" id="inventoryTable">
               <thead class="table-dark">
                   <tr>
@@ -100,6 +97,19 @@
                       <td>1999.99</td>
                       <td>10</td>
                   </tr>
+              </tbody>
+          </table>
+          <table class="table table-hover" id="locationOrdersTable" hidden>
+              <thead class="table-dark">
+                  <tr>
+                      <th scope="col">Order ID</th>
+                      <th scope="col">Customer ID</th>
+                      <th scope="col">Location</th>
+                      <th scope="col">Product Name</th>
+                      <th scope="col">Amount</th>
+                  </tr>
+              </thead>
+              <tbody id="locationOrdersTableBody">
               </tbody>
           </table>
           <button type="button" class="btn btn-success" id="addToCartButton" onclick="handleAddToCart(event)">Add To Cart</button>
@@ -119,6 +129,7 @@
               </tbody>
           </table>
           <button type="button" class="btn btn-success" id="checkoutButton">Checkout</button>
+          <button type="button" class="btn btn-danger" id="deleteCartButton" onclick="removeCart(event)">Remove</button>
       </div>
   </body>
 </html>
