@@ -38,5 +38,11 @@ namespace StoreApp.Web.Controllers
         {
             return _dataRepository.getLocations();
         }
+
+        [HttpGet("api/inventory")]
+        public Dictionary<string, List<lib.Product>> getInventory()
+        {
+            return _dataRepository.getAllInventory();
+        }
     }
 }
