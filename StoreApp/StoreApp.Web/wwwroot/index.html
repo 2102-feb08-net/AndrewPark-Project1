@@ -41,7 +41,7 @@
                           <a class="nav-link" id="customerOrderPageButton" href="#" onclick="toggleMainView('orderTable')">Orders</a>
                       </li>
                       <li class="nav-item">
-                          <a class="nav-link" id="cartPageButton" href="#" onclick="toggleMainView('orderTable')">Cart</a>
+                          <a class="nav-link" id="cartPageButton" href="#" onclick="toggleMainView('cart')">Cart</a>
                       </li>
                   </ul>
               </div>
@@ -49,21 +49,42 @@
       </nav>
 
 
-          <table class="table table-hover" id="customerTable" onclick="handleCustomerClick(event)">
-              <thead class="table-dark">
-                  <tr>
-                      <th scope="col">ID</th>
-                      <th scope="col">First</th>
-                      <th scope="col">Last</th>
-                      <th scope="col">Balance</th>
-                  </tr>
-              </thead>
-              <tbody id="customerTableBody">
-              </tbody>
-          </table>
+      <table class="table table-hover" id="customerTable" onclick="handleCustomerClick(event)">
+          <thead class="table-dark">
+              <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">First</th>
+                  <th scope="col">Last</th>
+                  <th scope="col">Balance</th>
+              </tr>
+          </thead>
+          <tbody id="customerTableBody">
+          </tbody>
+      </table>
 
+      <table class="table table-hover" hidden id="orderTable">
+          <thead class="table-dark">
+              <tr>
+                  <th scope="col">Order ID</th>
+                  <th scope="col">Customer ID</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">Product Name</th>
+                  <th scope="col">Amount</th>
+              </tr>
+          </thead>
+          <tbody id="orderTableBody">
+              <tr orderId="1" location="Mark" productName="Otto" productBought=10000>
+                  <th scope="row">1</th>
+                  <td>1</td>
+                  <td>CA1</td>
+                  <td>PS4</td>
+                  <td>2</td>
+              </tr>
+          </tbody>
+      </table>
 
-          <table class="table table-hover" hidden=true id="inventoryTable">
+      <div class="table-responsive" id="inventory" hidden>
+          <table class="table table-hover" id="inventoryTable">
               <thead class="table-dark">
                   <tr>
                       <th scope="col">ID</th>
@@ -81,26 +102,23 @@
                   </tr>
               </tbody>
           </table>
+          <button type="button" class="btn btn-success" id="addToCartButton" onclick="handleAddToCart(event)">Add To Cart</button>
+      </div>
 
-          <table class="table table-hover" hidden=true id="orderTable">
+      <div class="table-responsive" id="cart" hidden>
+          <table class="table table-hover" id="cartTable">
               <thead class="table-dark">
                   <tr>
-                      <th scope="col">Order ID</th>
-                      <th scope="col">Customer ID</th>
-                      <th scope="col">Location</th>
+                      <th scope="col">ID</th>
                       <th scope="col">Product Name</th>
+                      <th scope="col">Price</th>
                       <th scope="col">Amount</th>
                   </tr>
               </thead>
-              <tbody id="orderTableBody">
-                  <tr orderId="1" location="Mark" productName="Otto" productBought=10000>
-                      <th scope="row">1</th>
-                      <td>1</td>
-                      <td>CA1</td>
-                      <td>PS4</td>
-                      <td>2</td>
-                  </tr>
+              <tbody id="cartTableBody">
               </tbody>
           </table>
+          <button type="button" class="btn btn-success" id="checkoutButton">Checkout</button>
+      </div>
   </body>
 </html>

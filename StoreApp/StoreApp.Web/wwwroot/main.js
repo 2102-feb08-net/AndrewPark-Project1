@@ -3,7 +3,8 @@ let customers;
 let orders;
 let inventory;
 let locations;
-let allViews = ["customerTable", "inventoryTable", "orderTable"];
+let allViews = ["customerTable", "inventory", "orderTable", "cart"];
+let cart = {};
 
 async function init()
 {
@@ -14,6 +15,7 @@ async function init()
     addLocationsToDropdown();
     document.getElementById("customer-name-navbar").addEventListener("click", handleCustomerPageClick);
     document.getElementById("customerOrderPageButton").addEventListener("click", handleCustomerOrderClick);
+    document.getElementById("cartPageButton").addEventListener("click", handleCartPageClick);
 }
 
 function addLocationsToDropdown() {
@@ -31,7 +33,7 @@ function addLocationsToDropdown() {
 function handleLocationClick(event) {
     let elem = event.target.closest('button');
     if (elem.nodeName == "BUTTON") {
-        toggleMainView("inventoryTable");
+        toggleMainView("inventory");
         let table = document.getElementById("inventoryTableBody");
         while (table.childNodes.length > 0) {
             table.removeChild(table.lastChild);
@@ -43,7 +45,10 @@ function handleLocationClick(event) {
             row.innerHTML = `<td>${prod.productId}</td>
                             <td>${prod.name}</td>
                             <td>${prod.price}</td>
-                            <td>${prod.amount}</td>`;
+                            <td><input type="number" min=0 placeholder="${prod.amount}" size=5></td>`;
+            row.setAttribute("productId", prod.productId);
+            row.setAttribute("productName", prod.name);
+            row.setAttribute("price", prod.price);
         }
     }
 }
@@ -106,6 +111,42 @@ async function getOrders()
         alert("Could not get orders");
     }
     return listOfOrders;
+}
+
+function handleCartPageClick() {
+    let table = document.getElementById("cartTableBody");
+
+    while (table.children.length) {
+        table.removeChild(table.lastChild);
+    }
+
+    for (const productId in cart) {
+        let row = table.insertRow();
+        row.innerHTML = `<td>${productId}</td>
+                        <td>${cart[productId].productName}</td>
+                        <td>${cart[productId].price}</td>
+                        <td>${cart[productId].amount}</td>`;
+    }
+}
+
+function handleAddToCart(event) {
+    let tableBody = document.getElementById("inventoryTableBody");
+    for (let i = 0; i < tableBody.childNodes.length; i++) {
+        let prod = tableBody.children[i];
+        let prodInput = prod.children[3].firstChild;
+        let cartObject = {
+            productId : prod.getAttribute("productId"),
+            productName : prod.getAttribute("productName"),
+            price : prod.getAttribute("price"),
+            amount : parseInt(prodInput.value),
+        };
+        if (cartObject.productId in cart) {
+            cart[cartObject.productId].amount += cartObject.amount;
+        }
+        else {
+            cart[cartObject.productId] = cartObject;
+        }
+    }
 }
 
 function handleCustomerClick(event)
