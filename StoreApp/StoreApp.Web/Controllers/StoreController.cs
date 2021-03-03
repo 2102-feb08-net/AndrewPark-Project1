@@ -14,11 +14,9 @@ namespace StoreApp.Web.Controllers
     public class StoreController : ControllerBase
     {
         private readonly IDataRepository _dataRepository;
-        public StoreController()
+        public StoreController(IDataRepository repo)
         {
-            string dir = Directory.GetCurrentDirectory();
-            string connectionString = System.IO.File.ReadAllText(dir + "\\StoreDB-ConnectionString.txt");
-            _dataRepository = new StoreRespository(StoreRespository.createStoreOptions(connectionString));
+            _dataRepository = repo;
         }
 
         [HttpGet("api/customers")]

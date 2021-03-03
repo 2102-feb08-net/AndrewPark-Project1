@@ -73,12 +73,6 @@ namespace Storefront.DataAccess
         public void saveOrder(lib.Order order);
 
         /// <summary>
-        /// Saves the customer to the database
-        /// </summary>
-        /// <param name="customer">The customer with changes to be saved</param>
-        public void saveCustomer(lib.Customer customer);
-
-        /// <summary>
         /// Adds a new customer to the database
         /// </summary>
         /// <param name="customer">The newly created customer</param>

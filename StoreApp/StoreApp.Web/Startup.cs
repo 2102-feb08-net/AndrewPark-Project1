@@ -2,13 +2,16 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Storefront.DataAccess;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -26,6 +29,14 @@ namespace StoreApp.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string dir = Directory.GetCurrentDirectory();
+            string connectionString = System.IO.File.ReadAllText(dir + "\\StoreDB-ConnectionString.txt");
+            services.AddDbContext<StoreDBContext>(options =>
+            {
+                options.UseSqlServer(connectionString);
+            });
+
+            services.AddScoped<IDataRepository, StoreRespository>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

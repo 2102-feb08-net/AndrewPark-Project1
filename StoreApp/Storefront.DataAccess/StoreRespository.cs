@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using lib = Storefront.Library;
+using System.IO;
 
 namespace Storefront.DataAccess
 {
@@ -14,24 +15,15 @@ namespace Storefront.DataAccess
     /// </summary>
     public class StoreRespository : IDataRepository
     {
-        DbContextOptions<StoreDBContext> _options;
+        private readonly StoreDBContext _context;
 
         /// <summary>
         /// Returns the options for the DBContext
         /// </summary>
         /// <param name="options">The DBContext options</param>
-        public StoreRespository(DbContextOptions<StoreDBContext> options)
+        public StoreRespository(StoreDBContext context)
         {
-            _options = options;
-        }
-
-        public static DbContextOptions<StoreDBContext> createStoreOptions(string connectionString)
-        {
-            var options = new DbContextOptionsBuilder<Storefront.DataAccess.StoreDBContext>()
-                .UseSqlServer(connectionString)
-                //.LogTo(sw.WriteLine, minimumLevel: LogLevel.Information)
-                .Options;
-            return options;
+            _context = context;
         }
 
         /// <summary>
@@ -52,8 +44,7 @@ namespace Storefront.DataAccess
             var customers = new List<lib.Customer>();
             try
             {
-                using var context = new StoreDBContext(_options);
-                foreach (var customerLine in context.Customers)
+                foreach (var customerLine in _context.Customers)
                 {
                     customers.Add(new lib.Customer(customerLine.CustomerId, customerLine.FirstName, customerLine.LastName, customerLine.Balance));
                 }
@@ -74,8 +65,7 @@ namespace Storefront.DataAccess
             var locationDict = new Dictionary<int, string>();
             try
             {
-                using var context = new StoreDBContext(_options);
-                foreach (var locationLine in context.Locations)
+                foreach (var locationLine in _context.Locations)
                 {
                     if (!locationDict.ContainsKey(locationLine.LocationId))
                         locationDict.Add(locationLine.LocationId, locationLine.Name);
@@ -97,8 +87,7 @@ namespace Storefront.DataAccess
             var productDict = new Dictionary<int, (string, double)>();
             try
             {
-                using var context = new StoreDBContext(_options);
-                foreach (var productLine in context.Products)
+                foreach (var productLine in _context.Products)
                 {
                     if (!productDict.ContainsKey(productLine.ProductId))
                     {
@@ -122,11 +111,10 @@ namespace Storefront.DataAccess
             var storeInventory = new Dictionary<string, List<lib.Product>>();
             try
             {
-                using var context = new StoreDBContext(_options);
                 var locationDict = getLocationDict();
                 var productDict = getProductInfoDict();
 
-                foreach (var inventoryLine in context.Inventories)
+                foreach (var inventoryLine in _context.Inventories)
                 {
                     var locationId = locationDict[inventoryLine.LocationId];
                     if (!storeInventory.ContainsKey(locationId))
@@ -154,10 +142,9 @@ namespace Storefront.DataAccess
             var ordersDict = new Dictionary<int, lib.Order>();
             try
             {
-                using var context = new StoreDBContext(_options);
                 var locationDict = getLocationDict();
 
-                var data = context.OrderLines.Include(o => o.Product).Include(o => o.Order);
+                var data = _context.OrderLines.Include(o => o.Product).Include(o => o.Order);
 
                 foreach (var orderline in data)
                 {
@@ -204,16 +191,15 @@ namespace Storefront.DataAccess
         {
             try
             {
-                using var context = new StoreDBContext(_options);
-                foreach (var dataProduct in context.Inventories.Include(i => i.Location).Include(i => i.Product))
+                foreach (var dataProduct in _context.Inventories.Include(i => i.Location).Include(i => i.Product))
                 {
                     dataProduct.Amount = inventory[dataProduct.Location.Name]
                         .Where(prod => prod.ProductId == dataProduct.ProductId)
                         .FirstOrDefault()
                         .Amount;
-                    context.Update(dataProduct);
+                    _context.Update(dataProduct);
                 }
-                context.SaveChanges();
+                _context.SaveChanges();
             }
             catch (Exception)
             {
@@ -230,14 +216,14 @@ namespace Storefront.DataAccess
             try
             {
                 var locationDict = getLocationDict();
-                using var context = new StoreDBContext(_options);
 
                 var dataOrder = new DataAccess.Order();
+                var dataCustomer = _context.Customers.Where(c => c.CustomerId == order.CustomerId).FirstOrDefault();
                 dataOrder.CustomerId = order.CustomerId;
                 dataOrder.OrderTime = order.Time;
-                dataOrder.LocationId = context.Locations.Where(l => l.Name == order.Location).Select(l => l.LocationId).FirstOrDefault();
-                context.Add(dataOrder);
-                context.SaveChanges();
+                dataOrder.LocationId = _context.Locations.Where(l => l.Name == order.Location).Select(l => l.LocationId).FirstOrDefault();
+                _context.Add(dataOrder);
+                _context.SaveChanges();
 
                 foreach (var p in order.Products)
                 {
@@ -245,34 +231,15 @@ namespace Storefront.DataAccess
                     dataOrderLine.OrderId = dataOrder.OrderId;
                     dataOrderLine.ProductId = p.ProductId;
                     dataOrderLine.Amount = p.Amount;
-                    context.Add(dataOrderLine);
+                    dataCustomer.Balance -= p.Amount * p.Price;
+                    _context.Add(dataOrderLine);
                 }
-
-                context.SaveChanges();
+                _context.Update(dataCustomer);
+                _context.SaveChanges();
             }
             catch (Exception)
             {
                 Console.WriteLine("Error creating new orders");
-            }
-        }
-
-        /// <summary>
-        /// Saves the customer to the database
-        /// </summary>
-        /// <param name="customer">The customer with changes to be saved</param>
-        public void saveCustomer(lib.Customer customer)
-        {
-            try
-            {
-                using var context = new StoreDBContext(_options);
-                var dataCustomer = context.Customers.Where(c => c.CustomerId == customer.CustomerId).FirstOrDefault();
-                dataCustomer.Balance = customer.Balance;
-                context.Update(dataCustomer);
-                context.SaveChanges();
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Error saving customer's.");
             }
         }
 
@@ -284,13 +251,12 @@ namespace Storefront.DataAccess
         {
             try
             {
-                using var context = new StoreDBContext(_options);
                 var dataCustomer = new DataAccess.Customer();
                 dataCustomer.Balance = customer.Balance;
                 dataCustomer.FirstName = customer.FirstName;
                 dataCustomer.LastName = customer.LastName;
-                context.Add(dataCustomer);
-                context.SaveChanges();
+                _context.Add(dataCustomer);
+                _context.SaveChanges();
             }
             catch (Exception)
             {

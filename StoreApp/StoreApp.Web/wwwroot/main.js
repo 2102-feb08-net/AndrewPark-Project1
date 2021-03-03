@@ -266,6 +266,7 @@ function handleCartPageClick() {
                         <td>${cart[productId].productName}</td>
                         <td>${price.toFixed(2)}</td>
                         <td>${cart[productId].amount}</td>`;
+            row.setAttribute("productId", productId);
         }
     }
     catch (error) {
@@ -339,6 +340,8 @@ function addCustomersToTable(currentCustomers) {
 function handleCheckoutClick(event) {
     try {
         checkCartInStock();
+        let elem = event.target.closest('tr');
+        
     }
     catch (error) {
         console.log("error checking out.");
