@@ -124,6 +124,9 @@ function handleLocationClick(event) {
     try {
         let elem = event.target.closest('button');
         if (elem.nodeName == "BUTTON") {
+            if (currentLocation && currentLocation != elem.textContent) {
+                cart = {};
+            }
             currentLocation = elem.textContent;
             handleLocationOrdersClick(currentLocation);
             toggleMainView("inventory");
@@ -137,9 +140,10 @@ function handleLocationClick(event) {
             for (let i = 0; i < locationInventory.length; i++) {
                 let prod = locationInventory[i];
                 let row = table.insertRow();
+                let price = parseInt(prod.price).toFixed(2);
                 row.innerHTML = `<td>${prod.productId}</td>
                             <td>${prod.name}</td>
-                            <td>${prod.price.toFixed(2)}</td>
+                            <td>${price}</td>
                             <td><input type="number" onkeydown="return false" min=0 max=${prod.amount} placeholder="${prod.amount}" size=5></td>`;
                 row.setAttribute("productId", prod.productId);
                 row.setAttribute("productName", prod.name);
@@ -163,13 +167,18 @@ function filterOrderByLocation(orders, location) {
 }
 
 async function getInventory() {
-    let response = await fetch('/api/inventory');
     let inventoryDict;
-    if (response.ok) {
-        inventoryDict = await response.json();
+    try {
+        let response = await fetch('/api/inventory');
+        if (response.ok) {
+            inventoryDict = await response.json();
+        }
+        else {
+            alert("Could not get inventory.");
+        }
     }
-    else {
-        alert("Could not get inventory.");
+    catch (error) {
+        console.log("error getting inventory from db.");
     }
     return inventoryDict;
 }
@@ -228,13 +237,18 @@ async function getOrders()
 }
 
 function handleLocationOrderClick(event) {
-    let inventoryTable = document.getElementById("inventoryTable");
-    let addCartButton = document.getElementById("addToCartButton");
-    let locationOrdersTable = document.getElementById("locationOrdersTable");
+    try {
+        let inventoryTable = document.getElementById("inventoryTable");
+        let addCartButton = document.getElementById("addToCartButton");
+        let locationOrdersTable = document.getElementById("locationOrdersTable");
 
-    inventoryTable.hidden = !inventoryTable.hidden;
-    addCartButton.hidden = !addCartButton.hidden;
-    locationOrdersTable.hidden = !locationOrdersTable.hidden;
+        inventoryTable.hidden = !inventoryTable.hidden;
+        addCartButton.hidden = !addCartButton.hidden;
+        locationOrdersTable.hidden = !locationOrdersTable.hidden;
+    }
+    catch (error) {
+        console.log("error switching from inventory <> order");
+    }
 }
 
 function handleCartPageClick() {
@@ -247,9 +261,10 @@ function handleCartPageClick() {
 
         for (const productId in cart) {
             let row = table.insertRow();
+            let price = parseInt(cart[productId].price);
             row.innerHTML = `<td>${productId}</td>
                         <td>${cart[productId].productName}</td>
-                        <td>${cart[productId].price.toFixed(2)}</td>
+                        <td>${price.toFixed(2)}</td>
                         <td>${cart[productId].amount}</td>`;
         }
     }
@@ -300,10 +315,11 @@ function addCustomersToTable(currentCustomers) {
 
         for (let i = 0; i < currentCustomers.length; i++) {
             const row = table.insertRow();
+            let balance = parseInt(currentCustomers[i].balance);
             row.innerHTML = `<td>${currentCustomers[i].customerId}</td>
                         <td>${currentCustomers[i].firstName}</td>
                         <td>${currentCustomers[i].lastName}</td>
-                        <td>${currentCustomers[i].balance.toFixed(2)}</td>`;
+                        <td>${balance.toFixed(2)}</td>`;
             row.setAttribute("customerId", currentCustomers[i].customerId);
             row.setAttribute("customerFirst", currentCustomers[i].firstName);
             row.setAttribute("customerLast", currentCustomers[i].lastName);
@@ -318,6 +334,28 @@ function addCustomersToTable(currentCustomers) {
         console.log("error adding customers to page.");
     }
 
+}
+
+function handleCheckoutClick(event) {
+    try {
+        checkCartInStock();
+    }
+    catch (error) {
+        console.log("error checking out.");
+    }
+}
+
+function addOrder() {
+
+}
+
+function checkCartInStock() {
+    for (let productId in cart) {
+        let prod = inventory[currentLocation].find((p) => { return p.productId == productId });
+        if (cart[productId].amount > prod.amount) {
+            throw new Error("Not enough in stock for " + prod.name);
+        }
+    }
 }
 
 function changeCurrentCustomer(elem) {
