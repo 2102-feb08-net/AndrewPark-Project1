@@ -48,19 +48,36 @@
           </div>
       </nav>
 
+      <div class="table-responsive" id="customer">
+          <table class="table table-hover" id="customerTable" onclick="handleCustomerClick(event)">
+              <thead class="table-dark">
+                  <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">First</th>
+                      <th scope="col">Last</th>
+                      <th scope="col">Balance</th>
+                  </tr>
+              </thead>
+              <tbody id="customerTableBody">
+              </tbody>
+          </table>
+          <form id="createCustomerForm">
+              <div class="mb-3">
+                  <label for="firstNameInput" class="form-label">First Name</label>
+                  <input type="text" class="form-control" name="firstNameInput" aria-describedby="firstHelp">
+              </div>
+              <div class="mb-3">
+                  <label for="lastNameInput" class="form-label">Last Name</label>
+                  <input type="text" class="form-control" name="lastNameInput">
+              </div>
+              <div class="mb-3">
+                  <label for="balanceInput" class="form-label">Balance</label>
+                  <input type="number" class="form-control" name="balanceInput">
+              </div>
+              <button type="submit" class="btn btn-primary">Create Customer</button>
+          </form>
+      </div>
 
-      <table class="table table-hover" id="customerTable" onclick="handleCustomerClick(event)">
-          <thead class="table-dark">
-              <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">First</th>
-                  <th scope="col">Last</th>
-                  <th scope="col">Balance</th>
-              </tr>
-          </thead>
-          <tbody id="customerTableBody">
-          </tbody>
-      </table>
 
       <table class="table table-hover" hidden id="orderTable">
           <thead class="table-dark">

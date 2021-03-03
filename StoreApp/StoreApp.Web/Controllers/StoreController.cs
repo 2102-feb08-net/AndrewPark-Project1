@@ -44,5 +44,11 @@ namespace StoreApp.Web.Controllers
         {
             return _dataRepository.getAllInventory();
         }
+
+        [HttpPost("api/new/customer")]
+        public void createCustomer(lib.Customer customer)
+        {
+            _dataRepository.addCustomer(customer);
+        }
     }
 }

@@ -4,7 +4,7 @@ let customers;
 let orders;
 let inventory;
 let locations;
-let allViews = ["customerTable", "inventory", "orderTable", "cart"];
+let allViews = ["customer", "inventory", "orderTable", "cart"];
 let cart = {};
 
 async function init()
@@ -14,21 +14,34 @@ async function init()
     inventory = await getInventory();
     locations = await getLocations();
     addLocationsToDropdown();
+    addCustomersToTable(customers);
     document.getElementById("customer-name-navbar").addEventListener("click", handleCustomerPageClick);
     document.getElementById("customerOrderPageButton").addEventListener("click", handleCustomerOrderClick);
     document.getElementById("cartPageButton").addEventListener("click", handleCartPageClick);
+    document.getElementById("createCustomerForm").addEventListener("submit", handleCreateCustomerClick);
 }
 
 function addLocationsToDropdown() {
-    let dropdown = document.getElementById("locationDropdown");
-    for (let i = 0; i < locations.length; i++) {
-        let childLi = dropdown.appendChild(document.createElement("li"));
-        let childButton = childLi.appendChild(document.createElement("button"));
-        childButton.classList.add("dropdown-item");
-        childButton.setAttribute("type", "button");
-        childButton.textContent = locations[i];
-        childButton.addEventListener("click", handleLocationClick);
+    try {
+        let dropdown = document.getElementById("locationDropdown");
+        for (let i = 0; i < locations.length; i++) {
+            let childLi = dropdown.appendChild(document.createElement("li"));
+            let childButton = childLi.appendChild(document.createElement("button"));
+            childButton.classList.add("dropdown-item");
+            childButton.setAttribute("type", "button");
+            childButton.textContent = locations[i];
+            childButton.addEventListener("click", handleLocationClick);
+        }
     }
+    catch (error) {
+        console.log("error adding locations to dropdown.");
+    }
+}
+
+function refreshCustomers() {
+    fetch('/api/customers')
+        .then(response => response.json())
+        .then(response => { customers = response; addCustomersToTable(response); return response;});
 }
 
 function removeCart() {
@@ -36,53 +49,106 @@ function removeCart() {
     handleCartPageClick();
 }
 
-function handleLocationOrdersClick(location) {
-    locationOrders = filterOrderByLocation(orders, location);
-    toggleMainView("inventory");
-    let table = document.getElementById("locationOrdersTableBody");
+function handleCreateCustomerClick(event) {
+    try {
+        event.preventDefault();
+        const customerForm = document.getElementById('createCustomerForm');
+        let customerBalance = parseInt(customerForm.elements["balanceInput"].value);
 
-    while (table.children.length) {
-        table.removeChild(table.lastChild);
+        const customer = {
+            firstName: customerForm.elements["firstNameInput"].value,
+            lastName: customerForm.elements["lastNameInput"].value,
+            balance: customerBalance,
+        };
+
+        if (customerBalance < 0 || !customer.firstName.match("/^[a-z0-9]+$/i") || !customer.lastName.match("/^[a-z0-9]+$/i")) {
+            throw new Error("Invalid customer name or balance.");
+        }
+
+        createCustomer(customer);
+        customerForm.elements["firstNameInput"].value = '';
+        customerForm.elements["lastNameInput"].value = '';
+        customerForm.elements["balanceInput"].value = '';
     }
+    catch (error) {
+        alert("Invalid customer name or balance.");
+    }
+}
 
-    for (let i = 0; i < locationOrders.length; i++) {
-        for (let j = 0; j < locationOrders[i].products.length; j++) {
-            let order = locationOrders[i];
-            let prod = locationOrders[i].products[j];
-            const row = table.insertRow();
-            row.innerHTML = `<td>${order.orderId}</td>
+function createCustomer(customer) {
+    return fetch('/api/new/customer', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(customer)
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`Network response was not ok (${response.status})`);
+        }
+        else {
+            refreshCustomers();
+        }
+    });
+}
+
+function handleLocationOrdersClick(location) {
+    try {
+        locationOrders = filterOrderByLocation(orders, location);
+        toggleMainView("inventory");
+        let table = document.getElementById("locationOrdersTableBody");
+
+        while (table.children.length) {
+            table.removeChild(table.lastChild);
+        }
+
+        for (let i = 0; i < locationOrders.length; i++) {
+            for (let j = 0; j < locationOrders[i].products.length; j++) {
+                let order = locationOrders[i];
+                let prod = locationOrders[i].products[j];
+                const row = table.insertRow();
+                row.innerHTML = `<td>${order.orderId}</td>
                         <td>${order.customerId}</td>
                         <td>${order.location}</td>
                         <td>${prod.name}</td>
                         <td>${prod.amount}</td>`;
+            }
         }
+    }
+    catch (error) {
+        console.log("error opening location orders page.");
     }
 }
 
 function handleLocationClick(event) {
-    let elem = event.target.closest('button');
-    if (elem.nodeName == "BUTTON") {
-        currentLocation = elem.textContent;
-        handleLocationOrdersClick(currentLocation);
-        toggleMainView("inventory");
-        let table = document.getElementById("inventoryTableBody");
+    try {
+        let elem = event.target.closest('button');
+        if (elem.nodeName == "BUTTON") {
+            currentLocation = elem.textContent;
+            handleLocationOrdersClick(currentLocation);
+            toggleMainView("inventory");
+            let table = document.getElementById("inventoryTableBody");
 
-        while (table.childNodes.length > 0) {
-            table.removeChild(table.lastChild);
-        }
+            while (table.childNodes.length > 0) {
+                table.removeChild(table.lastChild);
+            }
 
-        let locationInventory = inventory[elem.textContent];
-        for (let i = 0; i < locationInventory.length; i++) {
-            let prod = locationInventory[i];
-            let row = table.insertRow();
-            row.innerHTML = `<td>${prod.productId}</td>
+            let locationInventory = inventory[elem.textContent];
+            for (let i = 0; i < locationInventory.length; i++) {
+                let prod = locationInventory[i];
+                let row = table.insertRow();
+                row.innerHTML = `<td>${prod.productId}</td>
                             <td>${prod.name}</td>
-                            <td>${prod.price}</td>
+                            <td>${prod.price.toFixed(2)}</td>
                             <td><input type="number" onkeydown="return false" min=0 max=${prod.amount} placeholder="${prod.amount}" size=5></td>`;
-            row.setAttribute("productId", prod.productId);
-            row.setAttribute("productName", prod.name);
-            row.setAttribute("price", prod.price);
+                row.setAttribute("productId", prod.productId);
+                row.setAttribute("productName", prod.name);
+                row.setAttribute("price", prod.price);
+            }
         }
+    }
+    catch (error) {
+        console.log("error opening location page.");
     }
 }
 
@@ -109,43 +175,54 @@ async function getInventory() {
 }
 
 async function getLocations() {
-    let response = await fetch('/api/locations');
     let locationList;
-    if (response.ok) {
-        locationList = await response.json();
+    try {
+        let response = await fetch('/api/locations');
+        if (response.ok) {
+            locationList = await response.json();
+        }
+        else {
+            alert("Could not get locations.");
+        }
     }
-    else {
-        alert("Could not get locations.");
+    catch (error) {
+        console.log("error retrieving locations from db.");
     }
     return locationList;
 }
 
 async function getCustomers()
 {
-    let response = await fetch('/api/customers');
     let listOfCustomers;
-    if (response.ok)
-    {
-        listOfCustomers = await response.json();
+    try {
+        let response = await fetch('/api/customers');
+        if (response.ok) {
+            listOfCustomers = await response.json();
+        }
+        else {
+            alert("Could not get customers");
+        }
     }
-    else
-    {
-        alert("Could not get customers");
+    catch (error) {
+        console.log("error retrieving customers from db.");
     }
     return listOfCustomers;
 }
 
 async function getOrders()
 {
-    let response = await fetch('/api/orders');
     let listOfOrders;
-    if (response.ok)
-    {
-        listOfOrders = await response.json();
+    try {
+        let response = await fetch('/api/orders');
+        if (response.ok) {
+            listOfOrders = await response.json();
+        }
+        else {
+            alert("Could not get orders");
+        }
     }
-    else
-    {
-        alert("Could not get orders");
+    catch (error) {
+        console.log("error retrieving orders from db.");
     }
     return listOfOrders;
 }
@@ -154,53 +231,96 @@ function handleLocationOrderClick(event) {
     let inventoryTable = document.getElementById("inventoryTable");
     let addCartButton = document.getElementById("addToCartButton");
     let locationOrdersTable = document.getElementById("locationOrdersTable");
+
     inventoryTable.hidden = !inventoryTable.hidden;
     addCartButton.hidden = !addCartButton.hidden;
     locationOrdersTable.hidden = !locationOrdersTable.hidden;
 }
 
 function handleCartPageClick() {
-    let table = document.getElementById("cartTableBody");
+    try {
+        let table = document.getElementById("cartTableBody");
 
-    while (table.children.length) {
-        table.removeChild(table.lastChild);
-    }
+        while (table.children.length) {
+            table.removeChild(table.lastChild);
+        }
 
-    for (const productId in cart) {
-        let row = table.insertRow();
-        row.innerHTML = `<td>${productId}</td>
+        for (const productId in cart) {
+            let row = table.insertRow();
+            row.innerHTML = `<td>${productId}</td>
                         <td>${cart[productId].productName}</td>
-                        <td>${cart[productId].price}</td>
+                        <td>${cart[productId].price.toFixed(2)}</td>
                         <td>${cart[productId].amount}</td>`;
+        }
+    }
+    catch (error) {
+        console.log("error opening cart page.");
     }
 }
 
 function handleAddToCart(event) {
-    let tableBody = document.getElementById("inventoryTableBody");
-    for (let i = 0; i < tableBody.childNodes.length; i++) {
-        let prod = tableBody.children[i];
-        let prodInput = prod.children[3].firstChild;
-        let cartObject = {
-            location: currentLocation,
-            productId : prod.getAttribute("productId"),
-            productName : prod.getAttribute("productName"),
-            price: prod.getAttribute("price"),
-            amount: isNaN(parseInt(prodInput.value)) ? 0 : parseInt(prodInput.value),
-        };
-        if (cartObject.amount > 0) {
-            if (cartObject.productId in cart) {
-                cart[cartObject.productId].amount += cartObject.amount;
-            }
-            else {
-                cart[cartObject.productId] = cartObject;
+    try {
+        let tableBody = document.getElementById("inventoryTableBody");
+
+        for (let i = 0; i < tableBody.childNodes.length; i++) {
+            let prod = tableBody.children[i];
+            let prodInput = prod.children[3].firstChild;
+
+            let cartObject = {
+                location: currentLocation,
+                productId: prod.getAttribute("productId"),
+                productName: prod.getAttribute("productName"),
+                price: prod.getAttribute("price"),
+                amount: isNaN(parseInt(prodInput.value)) ? 0 : parseInt(prodInput.value),
+            };
+
+            if (cartObject.amount > 0) {
+                if (cartObject.productId in cart) {
+                    cart[cartObject.productId].amount += cartObject.amount;
+                }
+                else {
+                    cart[cartObject.productId] = cartObject;
+                }
             }
         }
     }
+    catch (error) {
+        console.log("error adding to cart.");
+    }
 }
 
-function handleCustomerClick(event)
-{
-    let elem = event.target.closest('tr');
+function addCustomersToTable(currentCustomers) {
+    try {
+        toggleMainView("customer");
+        let table = document.getElementById("customerTableBody");
+
+        while (table.childNodes.length) {
+            table.removeChild(table.lastChild);
+        }
+
+        for (let i = 0; i < currentCustomers.length; i++) {
+            const row = table.insertRow();
+            row.innerHTML = `<td>${currentCustomers[i].customerId}</td>
+                        <td>${currentCustomers[i].firstName}</td>
+                        <td>${currentCustomers[i].lastName}</td>
+                        <td>${currentCustomers[i].balance.toFixed(2)}</td>`;
+            row.setAttribute("customerId", currentCustomers[i].customerId);
+            row.setAttribute("customerFirst", currentCustomers[i].firstName);
+            row.setAttribute("customerLast", currentCustomers[i].lastName);
+            row.setAttribute("customerBalance", currentCustomers[i].balance);
+
+            if (!currentCustomer || (currentCustomer && currentCustomer.getAttribute("customerId") == currentCustomers[i].customerId)) {
+                changeCurrentCustomer(row);
+            }
+        }
+    }
+    catch (error) {
+        console.log("error adding customers to page.");
+    }
+
+}
+
+function changeCurrentCustomer(elem) {
     if (elem.nodeName == "TR") {
         document.getElementById("customer-name-navbar").innerHTML =
             elem.getAttribute("customerFirst") + " " + elem.getAttribute("customerLast");
@@ -215,69 +335,63 @@ function handleCustomerClick(event)
     }
 }
 
+function handleCustomerClick(event)
+{
+    toggleMainView("customer");
+    let elem = event.target.closest('tr');
+    cart = {};
+    changeCurrentCustomer(elem);
+}
+
 function handleCustomerPageClick(event)
 {
-    toggleMainView("customerTable");
-    let table = document.getElementById("customerTableBody");
-
-    while (table.childNodes.length)
-    {
-        table.removeChild(table.lastChild);
-    }
-
-    for (let i = 0; i < customers.length; i++)
-    {
-        const row = table.insertRow();
-        row.innerHTML = `<td>${customers[i].customerId}</td>
-                        <td>${customers[i].firstName}</td>
-                        <td>${customers[i].lastName}</td>
-                        <td>${customers[i].balance}</td>`;
-        row.setAttribute("customerId", customers[i].customerId);
-        row.setAttribute("customerFirst", customers[i].firstName);
-        row.setAttribute("customerLast", customers[i].lastName);
-        row.setAttribute("customerBalance", customers[i].balance);
-        if (currentCustomer && currentCustomer.getAttribute("customerId") == customers[i].customerId) {
-            row.classList.add("table-primary");
-            currentCustomer = row;
-        }
-    }
+    addCustomersToTable(customers);
 }
 
 function handleCustomerOrderClick(event)
 {
-    customerOrders = filterOrderByCustomer(orders, currentCustomer);
-    toggleMainView("orderTable");
-    let table = document.getElementById("orderTableBody");
+    try {
+        customerOrders = filterOrderByCustomer(orders, currentCustomer);
+        toggleMainView("orderTable");
+        let table = document.getElementById("orderTableBody");
 
-    while (table.childNodes.length) {
-        table.removeChild(table.lastChild);
-    }
+        while (table.childNodes.length) {
+            table.removeChild(table.lastChild);
+        }
 
-    for (let i = 0; i < customerOrders.length; i++) {
-        for (let j = 0; j < customerOrders[i].products.length; j++) {
-            let order = customerOrders[i];
-            let prod = customerOrders[i].products[j];
-            const row = table.insertRow();
-            row.innerHTML = `<td>${order.orderId}</td>
+        for (let i = 0; i < customerOrders.length; i++) {
+            for (let j = 0; j < customerOrders[i].products.length; j++) {
+                let order = customerOrders[i];
+                let prod = customerOrders[i].products[j];
+                const row = table.insertRow();
+                row.innerHTML = `<td>${order.orderId}</td>
                         <td>${order.customerId}</td>
                         <td>${order.location}</td>
                         <td>${prod.name}</td>
                         <td>${prod.amount}</td>`;
+            }
         }
+    }
+    catch (error) {
+        console.log("error opening customer order page.");
     }
 }
 
 function toggleMainView(currentView)
-{   
-    for (const index in allViews) {
-        let table = allViews[index];
-        let elem = document.getElementById(table);
-        if (currentView === table)
-        {
-            elem.hidden = false;
-            continue;
+{
+    try {
+        for (const index in allViews) {
+            let table = allViews[index];
+            let elem = document.getElementById(table);
+            if (currentView === table) {
+                elem.hidden = false;
+                continue;
+            }
+            elem.hidden = true;
         }
-        elem.hidden = true;
+    }
+    catch (error) {
+        console.log("error toggling views.");
     }
 }
 
