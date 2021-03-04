@@ -25,6 +25,9 @@ steps:
 - script: dotnet test
   displayName: 'dotnet test tests'
   workingDirectory: StoreApp/Storefront.Test
+- script: dotnet publish
+  displayName: 'dotnet publish storefront.web'
+  workingDirectory: StoreApp/StoreApp.Web
 
 - task: PublishTestResults@2
   inputs:
