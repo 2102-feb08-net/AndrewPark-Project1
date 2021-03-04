@@ -22,21 +22,17 @@ steps:
 - script: dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
   workingDirectory: StoreApp
-- script: dotnet test -xml TEST-Storefront.xml
-  displayName: 'dotnet test tests'
-  workingDirectory: StoreApp/Storefront.Test
-- script: dotnet publish
-  displayName: 'dotnet publish storefront.web'
-  workingDirectory: StoreApp/StoreApp.Web
 
-- task: PublishTestResults@2
+- task: DotNetCoreCLI@2
   inputs:
-    testResultsFormat: 'XUnit'
-    testResultsFiles: '**/TEST-*.xml'
+    command: 'test'
+    projects: 'StoreApp/Storefront.Test'
+    testRunTitle: 'dotnet test'
 
-- task: AzureRmWebAppDeployment@4
-  inputs:
-    ConnectionType: 'PublishProfile'
-    PublishProfilePassword: ''
-    PublishProfilePath: '$(System.DefaultWorkingDirectory)/**/*.pubxml'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+# - task: AzureRmWebAppDeployment@4
+#   inputs:
+#     ConnectionType: 'AzureRM'
+#     azureSubscription: 'Azure subscription 1(3108cf2f-4c35-4864-8dad-b97042f1dd42)'
+#     appType: 'webApp'
+#     WebAppName: '2102-andrewp-storefront'
+#     packageForLinux: '$(System.DefaultWorkingDirectory)/**/storefrontpub'
