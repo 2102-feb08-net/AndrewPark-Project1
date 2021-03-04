@@ -25,3 +25,8 @@ steps:
 - script: dotnet test
   displayName: 'dotnet test tests'
   workingDirectory: StoreApp/Storefront.Test
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'XUnit'
+    testResultsFiles: '**/TEST-*.xml'
