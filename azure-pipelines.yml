@@ -7,24 +7,23 @@
 trigger:
   - master
 
-jobs:
-- job: jobStart
-  # set requirements for the build agent that will run the stuff
-  # here ubuntu (latest version) virtual machine
-  pool:
-    vmImage: ubuntu-latest
+# set requirements for the build agent that will run the stuff
+# here ubuntu (latest version) virtual machine
+pool:
+  vmImage: ubuntu-latest
 
-  # set variables, referenced with $() syntax
-  variables:
-    buildConfiguration: 'Release'
+# set variables, referenced with $() syntax
+variables:
+  buildConfiguration: 'Release'
 
-  # the steps to follow, here we have one script step, a command run in bash
-  # starting from the root folder of the repository
-  steps:
-  - script: dotnet build --configuration $(buildConfiguration)
-    displayName: 'dotnet build $(buildConfiguration)'
-    workingDirectory: StoreApp
+# the steps to follow, here we have one script step, a command run in bash
+# starting from the root folder of the repository
+steps:
+- script: dotnet build --configuration $(buildConfiguration)
+  displayName: 'dotnet build $(buildConfiguration)'
+  workingDirectory: StoreApp
 
-- job: ParallelTesting
-  strategy:
-    parallel: 1
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'XUnit'
+    testResultsFiles: '**/TEST-*.xml'
