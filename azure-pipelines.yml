@@ -22,8 +22,6 @@ steps:
 - script: dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
   workingDirectory: StoreApp
-
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'XUnit'
-    testResultsFiles: '**/TEST-*.xml'
+- script: dotnet test
+  displayName: 'dotnet test tests'
+  workingDirectory: StoreApp/Storefront.Test
