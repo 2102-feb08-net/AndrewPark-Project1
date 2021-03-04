@@ -30,3 +30,11 @@ steps:
   inputs:
     testResultsFormat: 'XUnit'
     testResultsFiles: '**/TEST-*.xml'
+
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'Azure subscription 1(3108cf2f-4c35-4864-8dad-b97042f1dd42)'
+    appType: 'webApp'
+    WebAppName: '2102-andrewp-storefront'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
