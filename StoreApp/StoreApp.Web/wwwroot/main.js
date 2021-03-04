@@ -61,7 +61,7 @@ function handleCreateCustomerClick(event) {
             balance: customerBalance,
         };
 
-        if (customerBalance < 0 || !customer.firstName.match("/^[a-z0-9]+$/i") || !customer.lastName.match("/^[a-z0-9]+$/i")) {
+        if (customerBalance < 0 || !customer.firstName.match(`^[a-zA-Z0-9]+$`) || !customer.lastName.match(`^[a-zA-Z0-9]+$`)) {
             throw new Error("Invalid customer name or balance.");
         }
 

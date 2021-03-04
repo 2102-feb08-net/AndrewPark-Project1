@@ -1,7 +1,5 @@
 bin
 obj
 *.vs
-*.csproj
-*.sln
 *.txt
 
