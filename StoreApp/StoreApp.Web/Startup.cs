@@ -29,8 +29,7 @@ namespace StoreApp.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string dir = Directory.GetCurrentDirectory();
-            string connectionString = System.IO.File.ReadAllText(dir + "\\StoreDB-ConnectionString.txt");
+            string connectionString = Configuration["ConnectionStrings:StoreDb"];
             services.AddDbContext<StoreDBContext>(options =>
             {
                 options.UseSqlServer(connectionString);

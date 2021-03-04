@@ -48,5 +48,17 @@ namespace StoreApp.Web.Controllers
         {
             _dataRepository.addCustomer(customer);
         }
+
+        [HttpPost("api/new/order")]
+        public void addNewOrder(lib.Order order)
+        {
+            _dataRepository.saveOrder(order);
+        }
+
+        [HttpPost("api/update/inventory")]
+        public void updateInventory(Dictionary<string, List<lib.Product>> inventory)
+        {
+            _dataRepository.saveAllInventory(inventory);
+        }
     }
 }

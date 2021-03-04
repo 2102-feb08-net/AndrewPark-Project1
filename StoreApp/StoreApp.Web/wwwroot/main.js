@@ -53,7 +53,7 @@ function handleCreateCustomerClick(event) {
     try {
         event.preventDefault();
         const customerForm = document.getElementById('createCustomerForm');
-        let customerBalance = parseInt(customerForm.elements["balanceInput"].value);
+        let customerBalance = parseFloat(customerForm.elements["balanceInput"].value);
 
         const customer = {
             firstName: customerForm.elements["firstNameInput"].value,
@@ -140,7 +140,7 @@ function handleLocationClick(event) {
             for (let i = 0; i < locationInventory.length; i++) {
                 let prod = locationInventory[i];
                 let row = table.insertRow();
-                let price = parseInt(prod.price).toFixed(2);
+                let price = parseFloat(prod.price).toFixed(2);
                 row.innerHTML = `<td>${prod.productId}</td>
                             <td>${prod.name}</td>
                             <td>${price}</td>
@@ -167,11 +167,11 @@ function filterOrderByLocation(orders, location) {
 }
 
 async function getInventory() {
-    let inventoryDict;
+    let inventoryDict = {};
     try {
         let response = await fetch('/api/inventory');
         if (response.ok) {
-            inventoryDict = await response.json();
+            return await response.json();
         }
         else {
             alert("Could not get inventory.");
@@ -220,11 +220,11 @@ async function getCustomers()
 
 async function getOrders()
 {
-    let listOfOrders;
+    let listOfOrders = [];
     try {
         let response = await fetch('/api/orders');
         if (response.ok) {
-            listOfOrders = await response.json();
+            return await response.json();
         }
         else {
             alert("Could not get orders");
@@ -261,7 +261,7 @@ function handleCartPageClick() {
 
         for (const productId in cart) {
             let row = table.insertRow();
-            let price = parseInt(cart[productId].price);
+            let price = parseFloat(cart[productId].price);
             row.innerHTML = `<td>${productId}</td>
                         <td>${cart[productId].productName}</td>
                         <td>${price.toFixed(2)}</td>
@@ -283,7 +283,6 @@ function handleAddToCart(event) {
             let prodInput = prod.children[3].firstChild;
 
             let cartObject = {
-                location: currentLocation,
                 productId: prod.getAttribute("productId"),
                 productName: prod.getAttribute("productName"),
                 price: prod.getAttribute("price"),
@@ -316,7 +315,7 @@ function addCustomersToTable(currentCustomers) {
 
         for (let i = 0; i < currentCustomers.length; i++) {
             const row = table.insertRow();
-            let balance = parseInt(currentCustomers[i].balance);
+            let balance = parseFloat(currentCustomers[i].balance);
             row.innerHTML = `<td>${currentCustomers[i].customerId}</td>
                         <td>${currentCustomers[i].firstName}</td>
                         <td>${currentCustomers[i].lastName}</td>
@@ -337,25 +336,84 @@ function addCustomersToTable(currentCustomers) {
 
 }
 
-function handleCheckoutClick(event) {
+async function handleCheckoutClick(event) {
     try {
-        checkCartInStock();
-        let elem = event.target.closest('tr');
-        
+        checkCartInStock(cart);
+        removeCartItemsFromInventory(inventory, cart);
+        let finalOrder = createFinalOrder(cart);
+        await addDbOrder(finalOrder);
+        await updateDbInventory(inventory);
+        cart = {};
+        handleCartPageClick();
+        orders = await getOrders();
     }
     catch (error) {
         console.log("error checking out.");
     }
 }
 
-function addOrder() {
-
+async function updateDbInventory(currentInventory) {
+    return fetch('/api/update/inventory', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(currentInventory)
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`Network response was not ok (${response.status})`);
+        } else {
+            return response;
+        }
+    });
 }
 
-function checkCartInStock() {
-    for (let productId in cart) {
+function createFinalOrder(currentCart) {
+    let finalOrder = {};
+    finalOrder.location = currentLocation;
+    finalOrder.customerId = currentCustomer.getAttribute("customerId");
+    finalOrder.products = [];
+    for (const productId in currentCart) {
+        finalOrder.products.push(
+            {
+                productId : parseInt(cart[productId].productId),
+                name: cart[productId].productName,
+                amount: parseInt(cart[productId].amount),
+                price: parseFloat(cart[productId].price)
+            }
+        );
+    }
+    return finalOrder;
+}
+
+function removeCartItemsFromInventory(currentInventory, currentCart) {
+    for (const productId in currentCart) {
+        let inventoryProd = currentInventory[currentLocation].find((p) => { return p.productId == productId; });
+        inventoryProd.amount -= currentCart[productId].amount;
+    }
+}
+
+async function addDbOrder(finalOrder) {
+    return fetch('/api/new/order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(finalOrder)
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`Network response was not ok (${response.status})`);
+        }
+        else {
+            return response;
+        }
+    });
+}
+
+function checkCartInStock(currentCart) {
+    for (let productId in currentCart) {
         let prod = inventory[currentLocation].find((p) => { return p.productId == productId });
-        if (cart[productId].amount > prod.amount) {
+        if (currentCart[productId].amount > prod.amount) {
             throw new Error("Not enough in stock for " + prod.name);
         }
     }
