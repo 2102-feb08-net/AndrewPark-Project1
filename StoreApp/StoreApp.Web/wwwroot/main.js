@@ -94,7 +94,7 @@ function createCustomer(customer) {
 
 function handleLocationOrdersClick(location) {
     try {
-        locationOrders = filterOrderByLocation(orders, location);
+        let locationOrders = filterOrderByLocation(orders, location);
         toggleMainView("inventory");
         let table = document.getElementById("locationOrdersTableBody");
 
@@ -156,14 +156,13 @@ function handleLocationClick(event) {
     }
 }
 
-function filterOrderByCustomer(orders, customer)
+function filterOrderByCustomer(allOrders, customer)
 {
-    let j = customer.getAttribute("customerId");
-    return orders.filter((order) => { return order.customerId == customer.getAttribute("customerId");});
+    return allOrders.filter((order) => { return order.customerId == customer.getAttribute("customerId");});
 }
 
-function filterOrderByLocation(orders, location) {
-    return orders.filter((order) => { return order.location == location; });
+function filterOrderByLocation(allOrders, location) {
+    return allOrders.filter((order) => { return order.location == location; });
 }
 
 async function getInventory() {
@@ -450,7 +449,7 @@ function handleCustomerPageClick(event)
 function handleCustomerOrderClick(event)
 {
     try {
-        customerOrders = filterOrderByCustomer(orders, currentCustomer);
+        let customerOrders = filterOrderByCustomer(orders, currentCustomer);
         toggleMainView("orderTable");
         let table = document.getElementById("orderTableBody");
 
