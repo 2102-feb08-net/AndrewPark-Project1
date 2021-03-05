@@ -49,7 +49,7 @@ namespace Storefront.DataAccess
                     customers.Add(new lib.Customer(customerLine.CustomerId, customerLine.FirstName, customerLine.LastName, customerLine.Balance));
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return customers;
             }
@@ -71,7 +71,7 @@ namespace Storefront.DataAccess
                         locationDict.Add(locationLine.LocationId, locationLine.Name);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return locationDict;
             }
@@ -95,7 +95,7 @@ namespace Storefront.DataAccess
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return productDict;
             }
@@ -125,7 +125,7 @@ namespace Storefront.DataAccess
                     storeInventory[locationId].Add(new lib.Product(productId, productDict[productId].Item1, productDict[productId].Item2, inventoryLine.Amount));
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return storeInventory;
             }
@@ -194,8 +194,7 @@ namespace Storefront.DataAccess
                 foreach (var dataProduct in _context.Inventories.Include(i => i.Location).Include(i => i.Product))
                 {
                     dataProduct.Amount = inventory[dataProduct.Location.Name]
-                        .Where(prod => prod.ProductId == dataProduct.ProductId)
-                        .FirstOrDefault()
+                        .FirstOrDefault(prod => prod.ProductId == dataProduct.ProductId)
                         .Amount;
                     _context.Update(dataProduct);
                 }
@@ -215,8 +214,6 @@ namespace Storefront.DataAccess
         {
             try
             {
-                var locationDict = getLocationDict();
-
                 var dataOrder = new DataAccess.Order();
                 var dataCustomer = _context.Customers.Where(c => c.CustomerId == order.CustomerId).FirstOrDefault();
                 dataOrder.CustomerId = order.CustomerId;

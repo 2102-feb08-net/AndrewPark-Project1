@@ -32,6 +32,11 @@ namespace Storefront.Library
             _products = new List<Product>();
         }
 
+        public Order()
+        {
+
+        }
+
         [Required]
         [Range(0, int.MaxValue,
         ErrorMessage = "Value must be greater than 0")]
@@ -94,11 +99,6 @@ namespace Storefront.Library
         {
             get { return _products; }
             set { _products = value; }
-        }
-
-        public Order()
-        {
-
         }
 
         public void addOrder(Product product)

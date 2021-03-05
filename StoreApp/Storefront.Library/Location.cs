@@ -40,7 +40,7 @@ namespace Storefront.Library
         }
 
         public Dictionary<int, int> Cart
-        { 
+        {
             get { return _cart; }
             set { _cart = value; }
         }
