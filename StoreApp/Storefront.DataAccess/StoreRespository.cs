@@ -150,7 +150,7 @@ namespace Storefront.DataAccess
                 {
                     var orderId = orderline.OrderId;
                     if (!ordersDict.ContainsKey(orderId))
-                        ordersDict.Add(orderline.OrderId, new lib.Order(orderId, locationDict[orderline.Order.LocationId], orderline.Order.CustomerId, orderline.Order.OrderTime));
+                        ordersDict.Add(orderline.OrderId, new lib.Order(orderId, locationDict[orderline.Order.LocationId], orderline.Order.CustomerId, orderline.Order.OrderTime.ToString()));
                     ordersDict[orderId].addOrder(new lib.Product(orderline.ProductId, orderline.Product.Name, orderline.Product.Price, orderline.Amount));
                 }
             }
@@ -220,7 +220,7 @@ namespace Storefront.DataAccess
                 var dataOrder = new DataAccess.Order();
                 var dataCustomer = _context.Customers.Where(c => c.CustomerId == order.CustomerId).FirstOrDefault();
                 dataOrder.CustomerId = order.CustomerId;
-                dataOrder.OrderTime = order.Time;
+                dataOrder.OrderTime = DateTime.Parse(order.Time);
                 dataOrder.LocationId = _context.Locations.Where(l => l.Name == order.Location).Select(l => l.LocationId).FirstOrDefault();
                 _context.Add(dataOrder);
                 _context.SaveChanges();

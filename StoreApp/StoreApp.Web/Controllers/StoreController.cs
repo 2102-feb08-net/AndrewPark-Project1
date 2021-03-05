@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using lib = Storefront.Library;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace StoreApp.Web.Controllers
 {

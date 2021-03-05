@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace Storefront.Library
@@ -11,7 +12,7 @@ namespace Storefront.Library
     {
         private string _location;
         private int _customerId;
-        private DateTime _time;
+        private string _time;
         private List<Product> _products;
         private int _orderId;
 
@@ -22,7 +23,7 @@ namespace Storefront.Library
         /// <param name="location">The location the order was placed</param>
         /// <param name="customerId">The customer id who placed the order</param>
         /// <param name="time">The date time of the placed order</param>
-        public Order(int orderId, string location, int customerId, DateTime time)
+        public Order(int orderId, string location, int customerId, string time)
         {
             this.Location = location;
             this.CustomerId = customerId;
@@ -31,6 +32,9 @@ namespace Storefront.Library
             _products = new List<Product>();
         }
 
+        [Required]
+        [Range(0, int.MaxValue,
+        ErrorMessage = "Value must be greater than 0")]
         public int CustomerId
         { 
             get { return _customerId; }
@@ -42,6 +46,8 @@ namespace Storefront.Library
             }
         }
 
+        [Required]
+        [MinLength(1, ErrorMessage = "Location must not be empty")]
         public string Location
         { 
             get { return _location; }
@@ -53,12 +59,21 @@ namespace Storefront.Library
             }
         }
 
-        public DateTime Time
+        [Required]
+        public string Time
         { 
             get { return _time; }
             set 
             {
-                _time = value;
+                try
+                {
+                    DateTime.Parse(value);
+                    _time = value;
+                }
+                catch (Exception)
+                {
+                    _time = DateTime.Now.ToString();
+                }
             }
         }
 
@@ -73,6 +88,8 @@ namespace Storefront.Library
             }
         }
 
+        [Required]
+        [MinLength(1, ErrorMessage = "Products must not be empty")]
         public List<Product> Products
         {
             get { return _products; }

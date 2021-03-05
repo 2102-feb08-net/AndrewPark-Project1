@@ -111,7 +111,8 @@ function handleLocationOrdersClick(location) {
                         <td>${order.customerId}</td>
                         <td>${order.location}</td>
                         <td>${prod.name}</td>
-                        <td>${prod.amount}</td>`;
+                        <td>${prod.amount}</td>
+                        <td>${locationOrders[i].time}</td>`;
             }
         }
     }
@@ -368,17 +369,19 @@ async function updateDbInventory(currentInventory) {
 }
 
 function createFinalOrder(currentCart) {
+    let date = new Date();
     let finalOrder = {};
     finalOrder.location = currentLocation;
     finalOrder.customerId = currentCustomer.getAttribute("customerId");
     finalOrder.products = [];
+    finalOrder.time = `${date.getMonth()}/${date.getDay()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
     for (const productId in currentCart) {
         finalOrder.products.push(
             {
                 productId : parseInt(cart[productId].productId),
                 name: cart[productId].productName,
                 amount: parseInt(cart[productId].amount),
-                price: parseFloat(cart[productId].price)
+                price: parseFloat(cart[productId].price),
             }
         );
     }
@@ -466,7 +469,8 @@ function handleCustomerOrderClick(event)
                         <td>${order.customerId}</td>
                         <td>${order.location}</td>
                         <td>${prod.name}</td>
-                        <td>${prod.amount}</td>`;
+                        <td>${prod.amount}</td>
+                        <td>${customerOrders[i].time}</td>`;
             }
         }
     }

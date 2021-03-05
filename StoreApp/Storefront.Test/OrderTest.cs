@@ -17,7 +17,7 @@ namespace Storefront.Test
         public void testValidOrder(int orderId, string location, int customerId, int year, int month, int day)
         {
             DateTime date = new DateTime(year, month, day);
-            Order order = new Order(orderId, location, customerId, date);
+            Order order = new Order(orderId, location, customerId, $"{month}/{day}/{year}");
         }
 
         [Theory]
@@ -28,7 +28,7 @@ namespace Storefront.Test
         {
             DateTime date = new DateTime(year, month, day);
             Order order;
-            Assert.ThrowsAny<InvalidOperationException>(() => order = new Order(orderId, location, customerId, date));
+            Assert.ThrowsAny<InvalidOperationException>(() => order = new Order(orderId, location, customerId, $"{month}/{day}/{year}"));
         }
     }
 }

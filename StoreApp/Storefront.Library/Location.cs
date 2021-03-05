@@ -96,9 +96,9 @@ namespace Storefront.Library
 
             Order finalOrder;
             if (orders.Count == 0)
-                finalOrder = new Order(0, _location, customer.CustomerId, DateTime.Now);
+                finalOrder = new Order(0, _location, customer.CustomerId, DateTime.Now.ToString());
             else
-                finalOrder = new Order(orders.Select((order) => order.OrderId).Max() + 1, _location, customer.CustomerId, DateTime.Now);
+                finalOrder = new Order(orders.Select((order) => order.OrderId).Max() + 1, _location, customer.CustomerId, DateTime.Now.ToString());
             foreach (var cartProduct in _cart)
             {
                 inventory[cartProduct.Key].Amount -= cartProduct.Value;
