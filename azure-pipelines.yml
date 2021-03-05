@@ -27,10 +27,18 @@ steps:
     scannerMode: 'MSBuild'
     projectKey: '2102-feb08-net_AndrewPark-Project1'
     projectName: 'Storefront'
+    extraProperties: 'sonar.cs.opencover.reportsPaths=$(Agent.TempDirectory)/*/coverage.opencover.xml'
 
 - script: dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
   workingDirectory: StoreApp
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet test
+  inputs:
+    command: 'test'
+    arguments: '--configuration $(buildConfiguration) --collect "xplat code coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,opencover'
+    workingDirectory: 'StoreApp/Storefront.Test'
 
 - task: SonarCloudAnalyze@1
   displayName: sonar run analysis
@@ -39,12 +47,6 @@ steps:
   displayName: publish sonar quality gate
   inputs:
     pollingTimeoutSec: '300'
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
-    projects: 'StoreApp/Storefront.Test'
-    testRunTitle: 'dotnet test'
 
 - task: DotNetCoreCLI@2
   inputs:
