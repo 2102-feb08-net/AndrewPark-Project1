@@ -298,6 +298,8 @@ function handleAddToCart(event) {
                 }
             }
         }
+
+        clearInventoryValues();
     }
     catch (error) {
         console.log("error adding to cart.");
@@ -341,8 +343,10 @@ async function handleCheckoutClick(event) {
         checkCartInStock(cart);
         removeCartItemsFromInventory(inventory, cart);
         let finalOrder = createFinalOrder(cart);
+        toggleCartButtons();
         await addDbOrder(finalOrder);
         await updateDbInventory(inventory);
+        toggleCartButtons();
         cart = {};
         handleCartPageClick();
         orders = await getOrders();
@@ -449,6 +453,13 @@ function handleCustomerPageClick(event)
     addCustomersToTable(customers);
 }
 
+function clearInventoryValues() {
+    let table = document.getElementById("inventoryTableBody");
+    for (let elem of table.querySelectorAll("input")) {
+        elem.value = "";
+    }
+}
+
 function handleCustomerOrderClick(event)
 {
     try {
@@ -476,6 +487,23 @@ function handleCustomerOrderClick(event)
     }
     catch (error) {
         console.log("error opening customer order page.");
+    }
+}
+
+function toggleCartButtons() {
+    let checkoutBtn = document.getElementById("checkoutButton");
+    let clearBtn = document.getElementById("deleteCartButton");
+
+    if (checkoutBtn.classList.contains("disabled")) {
+        checkoutBtn.classList.remove("disabled");
+    } else {
+        checkoutBtn.classList.add("disabled");
+    }
+
+    if (clearBtn.classList.contains("disabled")) {
+        clearBtn.classList.remove("disabled");
+    } else {
+        clearBtn.classList.add("disabled");
     }
 }
 
