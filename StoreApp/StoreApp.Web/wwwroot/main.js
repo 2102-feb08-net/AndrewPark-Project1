@@ -378,7 +378,7 @@ function createFinalOrder(currentCart) {
     finalOrder.location = currentLocation;
     finalOrder.customerId = currentCustomer.getAttribute("customerId");
     finalOrder.products = [];
-    finalOrder.time = `${date.getMonth()}/${date.getDay()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+    finalOrder.time = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
     for (const productId in currentCart) {
         finalOrder.products.push(
             {
