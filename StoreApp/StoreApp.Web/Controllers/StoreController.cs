@@ -48,6 +48,8 @@ namespace StoreApp.Web.Controllers
         [HttpPost("api/new/customer")]
         public void createCustomer(lib.Customer customer)
         {
+            if (customer.Balance < 0)
+                throw new ArgumentException("Customer balance cannot be less than zero.");
             _dataRepository.addCustomer(customer);
         }
 

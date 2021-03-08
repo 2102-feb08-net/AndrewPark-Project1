@@ -399,9 +399,15 @@ function createFinalOrder(currentCart) {
 }
 
 function removeCartItemsFromInventory(currentInventory, currentCart) {
+    let total = 0;
     for (const productId in currentCart) {
         let inventoryProd = currentInventory[currentLocation].find((p) => { return p.productId == productId; });
         inventoryProd.amount -= currentCart[productId].amount;
+        total += currentCart[productId].amount * currentCart[productId].price;
+    }
+    if (total > currentCustomer.getAttribute("customerBalance")) {
+        alert("Balance not sufficient!");
+        throw new Error("Customer balance not enough");
     }
 }
 
