@@ -33,6 +33,7 @@ namespace StoreApp.Web
             string connectionString = Configuration["ConnectionStrings:StoreDb"];
             services.AddDbContext<StoreDBContext>(options =>
             {
+                options.LogTo(Console.WriteLine);
                 options.UseSqlServer(connectionString);
             });
 
