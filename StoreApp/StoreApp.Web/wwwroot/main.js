@@ -200,6 +200,10 @@ async function getLocations() {
     return locationList;
 }
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 async function getCustomers()
 {
     let listOfCustomers;
@@ -207,6 +211,7 @@ async function getCustomers()
         let response = await fetch('/api/customers');
         if (response.ok) {
             listOfCustomers = await response.json();
+            listOfCustomers.forEach((c) => { c.firstName = capitalizeFirstLetter(c.firstName.toLowerCase()); c.lastName = capitalizeFirstLetter(c.lastName.toLowerCase())});
         }
         else {
             alert("Could not get customers");
@@ -346,10 +351,11 @@ async function handleCheckoutClick(event) {
         toggleCartButtons();
         await addDbOrder(finalOrder);
         await updateDbInventory(inventory);
-        toggleCartButtons();
         cart = {};
         handleCartPageClick();
         orders = await getOrders();
+        customers = await getCustomers();
+        toggleCartButtons();
     }
     catch (error) {
         console.log("error checking out.");
