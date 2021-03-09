@@ -50,6 +50,14 @@ namespace StoreApp.Web.Controllers
         {
             if (customer.Balance < 0)
                 throw new ArgumentException("Customer balance cannot be less than zero.");
+            if (!customer.FirstName.All(char.IsLetter))
+            {
+                throw new ArgumentException("Customer name must only be a alphabet letter");
+            }
+            if (!customer.LastName.All(char.IsLetter))
+            {
+                throw new ArgumentException("Customer name must only be a alphabet letter");
+            }
             _dataRepository.addCustomer(customer);
         }
 
